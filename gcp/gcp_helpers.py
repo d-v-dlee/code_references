@@ -38,10 +38,10 @@ def download_gcs_model(bucket_name, models_dir, model_name):
     Inputs
     ------
     bucket_name: string, name of bucket
-        example: 'transcriptions-modalis-dev-crackling'
+        example: 'some_bucket_name'
         
     models_dir: string, path to model zoo 
-        example:  'ml-models/model-zoo-2019-07-25'
+        example:  'ml-models/july-updates'
     
     model_name: string, name of model
         example: context_only_model.pkl
@@ -97,3 +97,32 @@ def download_d2v_gcs(bucket_name, models_dir, model_name='d2v.model'):
         d2v_model = Doc2Vec.load(filename)
     
     return d2v_model
+
+def upload_json_to_train(bucket_name, source_file, file_name):
+    """
+    Function for uploading json file (original + copy) into GCS bucket for retraining
+
+    Inputs
+    ------
+    bucket_name: str; name of GCS bucket (ex. some_bucket_name)
+    source_file: deserialized json
+    file_name: str; name of file when saved to bucket appended to 'data/train/' + 'example.json'
+
+    Outputs
+    -----
+    saves to gcs bucket.
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    destination_blob_name = 'data/train/' + file_name
+    blob = bucket.blob(destination_blob_name)
+    
+    # write to a file
+    with open("temp.json", "w") as f:
+        json.dump(source_file, f)
+
+
+    blob.upload_from_filename('temp.json') 
+
+    print(f'File {file_name} uploaded to {destination_blob_name}.')
+    return 'success'
