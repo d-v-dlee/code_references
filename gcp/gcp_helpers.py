@@ -4,6 +4,7 @@ from google.cloud import storage
 import os
 import smart_open
 from gensim.models.doc2vec import Doc2Vec
+import pandas as pd
 
 # in order to access gcs bucket, you often need credentials
 # ex: os.environ['GOOGLE_APPLICATION_CREDENTIALS']
@@ -30,6 +31,45 @@ def download_blob_as_json(bucket_name, source_blob_name):
     json_data = json.loads(j.decode('utf-8'))
     
     return json_data
+
+def download_pickled_df(bucket_name, source_blob_name):
+    """
+    retrieves df from gcs and returns un-pickled df from gcs
+
+    inputs
+    ----
+    bucket_name: name of bucket
+    source_blob_name: str, path to model ex 'data/dfs/df_docs.pkl
+
+    returns
+    -----
+    df
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+
+    name = os.path.basename(source_blob_name)
+    blob.download_to_filename(name)
+
+    with open(name, 'rb') as f:
+        df = pd.read_pickle(name)
+    
+    return df
+
+def upload_and_pickle_df(bucket_name, destination_blob_name, df):
+    """
+    pickles and uploads a df to gcs
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    with open('df.pkl', 'wb') as f:
+        pickle.dump(df, f)
+    
+    blob.upload_from_filename('df.pkl')
+    os.remove('df.pkl')
 
 def download_gcs_model(bucket_name, models_dir, model_name):
     """
