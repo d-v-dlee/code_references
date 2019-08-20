@@ -60,6 +60,13 @@ def download_pickled_df(bucket_name, source_blob_name):
 def upload_and_pickle_df(bucket_name, destination_blob_name, df):
     """
     pickles and uploads a df to gcs
+
+    inputs
+    ----
+    bucket_name: str, name of bucket
+    destination_blob_name: str, path where you wanna save it
+        ex data/pickled_dfs/particular_df.pkl
+    df: dataframe object to pickle
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
