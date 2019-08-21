@@ -9,28 +9,7 @@ import pandas as pd
 # in order to access gcs bucket, you often need credentials
 # ex: os.environ['GOOGLE_APPLICATION_CREDENTIALS']
 
-def download_blob_as_json(bucket_name, source_blob_name):
-    """
-    Calls on gcs bucket and returns json as json 
-
-    inputs
-    ------
-    bucket_name: name of bucket
-    source_blob_name: path to file
-        example: 'data/inference/transcript-copy-2640899533-1295116867788-e7e32108913abd1f.json'
-
-    returns
-    -----
-    json_data: dict of data
-    """
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob = bucket.blob(source_blob_name)
-
-    j = blob.download_as_string()
-    json_data = json.loads(j.decode('utf-8'))
-    
-    return json_data
+### Working with pickled objects #####
 
 def download_pickled_df(bucket_name, source_blob_name):
     """
@@ -57,26 +36,26 @@ def download_pickled_df(bucket_name, source_blob_name):
     
     return df
 
-def upload_and_pickle_df(bucket_name, destination_blob_name, df):
+def upload_and_pickle(bucket_name, destination_blob_name, object_to_pickle):
     """
-    pickles and uploads a df to gcs
+    pickles and uploads a pickled object (df or model) to gcs
 
     inputs
     ----
     bucket_name: str, name of bucket
     destination_blob_name: str, path where you wanna save it
         ex data/pickled_dfs/particular_df.pkl
-    df: dataframe object to pickle
+    object_to_pickle: dataframe/model object to pickle
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
-    with open('df.pkl', 'wb') as f:
-        pickle.dump(df, f)
+    with open('something.pkl', 'wb') as f:
+        pickle.dump(object_to_pickle, f)
     
-    blob.upload_from_filename('df.pkl')
-    os.remove('df.pkl')
+    blob.upload_from_filename('something.pkl')
+    os.remove('something.pkl')
 
 def download_gcs_model(bucket_name, models_dir, model_name):
     """
@@ -115,35 +94,7 @@ def download_gcs_model(bucket_name, models_dir, model_name):
 
     return model
 
-def download_d2v_gcs(bucket_name, models_dir, model_name='d2v.model'):
-    """
-    Function for call d2v model
-
-    inputs
-    -------
-    bucket_name: string, name of bucket NOT project
-    models_dir: string, path of directory to model NOT including model name
-    model_name: name of model
-
-    returns
-    -----
-    d2vmodel
-    """
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-
-    # get name of model
-    specific_model = models_dir + os.sep + model_name
-
-    blob = bucket.blob(specific_model)
-    
-    filename = os.path.basename(specific_model)
-    blob.download_to_filename(filename)
-    
-    with smart_open.open(filename, 'rb') as f:
-        d2v_model = Doc2Vec.load(filename)
-    
-    return d2v_model
+### JSON section ###
 
 def upload_json_to_train(bucket_name, source_file, file_name):
     """
@@ -173,3 +124,81 @@ def upload_json_to_train(bucket_name, source_file, file_name):
 
     print(f'File {file_name} uploaded to {destination_blob_name}.')
     return 'success'
+
+def download_blob_as_json(bucket_name, source_blob_name):
+    """
+    Calls on gcs bucket and returns json as json 
+
+    inputs
+    ------
+    bucket_name: name of bucket
+    source_blob_name: path to file
+        example: 'data/inference/transcript-copy-2640899533-1295116867788-e7e32108913abd1f.json'
+
+    returns
+    -----
+    json_data: dict of data
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+
+    j = blob.download_as_string()
+    json_data = json.loads(j.decode('utf-8'))
+    
+    return json_data
+
+### doc2vec section - up/downloading models ending with .model ####
+
+def upload_doc2vec_gcs(bucket_name, destination_blob_name, d2v_model):
+    """
+    saves and uploads a model to gcs. different than upload_and_pickle because its saved
+    as .model vs. .pkl
+
+    inputs
+    ----
+    bucket_name: str, name of bucket
+    destination_blob_name: str, path where you wanna save it
+        ex data/pickled_dfs/particular_df.pkl
+    d2v_model: doc2vec model
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    with smart_open.open('something.model', 'wb') as f:
+        d2v_model.save('something.model')
+
+    blob.upload_from_filename('something.model')
+    os.remove('something.model')
+
+def download_d2v_gcs(bucket_name, models_dir, model_name='d2v.model'):
+    """
+    Function for call d2v model. models_dir + model_name creates specific_model which
+    is equal to source_blob_name as seen in upload.
+
+    inputs
+    -------
+    bucket_name: string, name of bucket NOT project
+    models_dir: string, path of directory to model NOT including model name
+    model_name: name of model
+
+    returns
+    -----
+    d2vmodel
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
+    # get name of model
+    specific_model = models_dir + os.sep + model_name
+
+    blob = bucket.blob(specific_model)
+    
+    filename = os.path.basename(specific_model)
+    blob.download_to_filename(filename)
+    
+    with smart_open.open(filename, 'rb') as f:
+        d2v_model = Doc2Vec.load(filename)
+    
+    return d2v_model
