@@ -22,7 +22,7 @@ def download_pickled_df(bucket_name, source_blob_name):
 
     returns
     -----
-    df
+    df: unpickled df
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
@@ -96,14 +96,15 @@ def download_gcs_model(bucket_name, models_dir, model_name):
 
 ### JSON section ###
 
-def upload_json_to_train(bucket_name, source_file, file_name):
+def upload_json_to_directory(bucket_name, file_to_upload, directory_name, file_name):
     """
     Function for uploading json file (original + copy) into GCS bucket for retraining
 
     Inputs
     ------
     bucket_name: str; name of GCS bucket (ex. some_bucket_name)
-    source_file: deserialized json
+    file_to_upload: deserialized json
+    directory_name: str; name of directory in gcs bucket
     file_name: str; name of file when saved to bucket appended to 'data/train/' + 'example.json'
 
     Outputs
@@ -112,12 +113,12 @@ def upload_json_to_train(bucket_name, source_file, file_name):
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
-    destination_blob_name = 'data/train/' + file_name
+    destination_blob_name = directory_name + os.sep + file_name
     blob = bucket.blob(destination_blob_name)
     
     # write to a file
     with open("temp.json", "w") as f:
-        json.dump(source_file, f)
+        json.dump(file_to_upload, f)
 
 
     blob.upload_from_filename('temp.json') 
@@ -132,7 +133,7 @@ def download_blob_as_json(bucket_name, source_blob_name):
     inputs
     ------
     bucket_name: name of bucket
-    source_blob_name: path to file
+    source_blob_name: complete path to file in bucket
         example: 'data/inference/transcript-copy-2640899533-1295116867788-e7e32108913abd1f.json'
 
     returns
