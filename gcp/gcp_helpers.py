@@ -203,3 +203,68 @@ def download_d2v_gcs(bucket_name, models_dir, model_name='d2v.model'):
         d2v_model = Doc2Vec.load(filename)
     
     return d2v_model
+
+################## working with blobs #################
+def mv_blob(bucket_name, blob_name, new_bucket_name, new_blob_name):
+    """
+    Function for moving files between directories or buckets. it will use GCP's copy function then delete
+    from the old directory
+    
+    inputs
+    -----
+    bucket_name: name of bucket
+    blob_name: str, name of file 
+        ex. 'data/some_location/file_name'
+    new_bucket_name: name of bucket (can be same as original if we're just moving around directories)
+    new_blob_name: str, name of file in new directory 
+        ex. 'data/destination/file_name'
+    """
+    storage_client = storage.Client()
+    source_bucket = storage_client.get_bucket(bucket_name)
+    source_blob = source_bucket.blob(blob_name)
+    destination_bucket = storage_client.get_bucket(new_bucket_name)
+
+    # copy to new destination
+    new_blob = source_bucket.copy_blob(
+        source_blob, destination_bucket, new_blob_name)
+    # delete in old destination
+    source_blob.delete()
+    
+    print(f'File moved from {source_blob} to {new_blob_name}')
+
+def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name):
+    """
+    Copies a blob from one bucket to another with a new name.
+    
+    Inputs
+    -----
+    bucket_name: str, name of bucket
+    blob_name: str, name of file
+    new_bucket_name: str, name of bucket - same as bucket_name if moving within directories
+    new_blob_name: str, new name of file
+    """
+    storage_client = storage.Client()
+    source_bucket = storage_client.get_bucket(bucket_name)
+    source_blob = source_bucket.blob(blob_name)
+    destination_bucket = storage_client.get_bucket(new_bucket_name)
+
+    new_blob = source_bucket.copy_blob(
+        source_blob, destination_bucket, new_blob_name)
+    
+
+def delete_blob_in_directory(bucket_name, prefix):
+    """
+    Function for deleting blob for directory 
+    
+    bucket_name: name of bucket
+    prefix: prefix of filename
+        ex. 'data/clean_files/some_name'
+    """
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    count = 0
+    for blob in bucket.list_blobs(prefix=prefix):
+        print(blob.name)
+        blob.delete()
+        count +=1
+    print(f'{count} files starting with {prefix} removed.')
