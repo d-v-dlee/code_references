@@ -100,8 +100,14 @@ def upload_json_to_directory(bucket_name, file_to_upload, directory_name, file_n
     ------
     bucket_name: str; name of GCS bucket (ex. some_bucket_name)
     file_to_upload: deserialized json
+<<<<<<< HEAD
     directory_name: str; name of directory in gcs bucket ex 'some_directory'
     file_name: str; name of file when saved to bucket appended to 'some_directory/' + 'example.json'
+=======
+    directory_name: str; name of directory in gcs bucket
+    file_name: str; name of file when saved to bucket appended to 'data/train/' + 'example.json'
+
+>>>>>>> 632da27e5dfa4e07f6adfc9fe4a18c77166cbed7
     Outputs
     -----
     saves to gcs bucket.
