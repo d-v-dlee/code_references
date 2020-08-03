@@ -14,12 +14,10 @@ import pandas as pd
 def download_pickled_df(bucket_name, source_blob_name):
     """
     retrieves df from gcs and returns un-pickled df from gcs
-
     inputs
     ----
     bucket_name: name of bucket
     source_blob_name: str, path to model ex 'data/dfs/df_docs.pkl
-
     returns
     -----
     df: unpickled df
@@ -39,7 +37,6 @@ def download_pickled_df(bucket_name, source_blob_name):
 def upload_and_pickle(bucket_name, destination_blob_name, object_to_pickle):
     """
     pickles and uploads a pickled object (df or model) to gcs
-
     inputs
     ----
     bucket_name: str, name of bucket
@@ -98,15 +95,19 @@ def download_gcs_model(bucket_name, models_dir, model_name):
 
 def upload_json_to_directory(bucket_name, file_to_upload, directory_name, file_name):
     """
-    Function for uploading json file (original + copy) into GCS bucket for retraining
-
+    Function for uploading json file into a specific directory in GCP bucket.
     Inputs
     ------
     bucket_name: str; name of GCS bucket (ex. some_bucket_name)
     file_to_upload: deserialized json
+<<<<<<< HEAD
+    directory_name: str; name of directory in gcs bucket ex 'some_directory'
+    file_name: str; name of file when saved to bucket appended to 'some_directory/' + 'example.json'
+=======
     directory_name: str; name of directory in gcs bucket
     file_name: str; name of file when saved to bucket appended to 'data/train/' + 'example.json'
 
+>>>>>>> 632da27e5dfa4e07f6adfc9fe4a18c77166cbed7
     Outputs
     -----
     saves to gcs bucket.
@@ -129,13 +130,11 @@ def upload_json_to_directory(bucket_name, file_to_upload, directory_name, file_n
 def download_blob_as_json(bucket_name, source_blob_name):
     """
     Calls on gcs bucket and returns json as json 
-
     inputs
     ------
     bucket_name: name of bucket
     source_blob_name: complete path to file in bucket
         example: 'data/inference/transcript-copy-2640899533-1295116867788-e7e32108913abd1f.json'
-
     returns
     -----
     json_data: dict of data
@@ -155,7 +154,6 @@ def upload_doc2vec_gcs(bucket_name, destination_blob_name, d2v_model):
     """
     saves and uploads a model to gcs. different than upload_and_pickle because its saved
     as .model vs. .pkl
-
     inputs
     ----
     bucket_name: str, name of bucket
@@ -177,13 +175,11 @@ def download_d2v_gcs(bucket_name, models_dir, model_name='d2v.model'):
     """
     Function for call d2v model. models_dir + model_name creates specific_model which
     is equal to source_blob_name as seen in upload.
-
     inputs
     -------
     bucket_name: string, name of bucket NOT project
     models_dir: string, path of directory to model NOT including model name
     model_name: name of model
-
     returns
     -----
     d2vmodel
